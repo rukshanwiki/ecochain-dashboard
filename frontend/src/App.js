@@ -15,8 +15,7 @@ import PrivateRoute from './Components/PrivateRoute';
 import CultivationMap from './Components/CultivationMap';
 import CalendarPage from './Components/CalendarPage';
 import AboutUs from './Components/AboutUs';
-import Users from './Components/Users'
-//import userEvent from '@testing-library/user-event';
+import ScrollToTop from './Components/ScrollToTop';
 import { Navigate } from 'react-router-dom';
 
 function App() {
@@ -45,6 +44,7 @@ function App() {
 
   return (
     <Router>
+      <ScrollToTop />
       <div className="App" style={{ backgroundColor: "rgb(216 213 213)", minHeight: "100vh" }}>
         {isLoggedIn ? (
           <>
@@ -130,16 +130,5 @@ function App() {
 export default App;
 
 
-// import React from 'react'
-// import Users from './Components/Users'
 
-// const App = () => {
-//   return (
-//     <div>
-//       <Users />
-//     </div>
-//   )
-// }
-
-// export default App
 

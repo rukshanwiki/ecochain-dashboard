@@ -1,0 +1,43 @@
+/* Make the entire calendar rounded and elegant */
+.react-calendar {
+  border-radius: 20px; /* Rounded corners for full calendar */
+  overflow: hidden; /* So the radius applies properly */
+  border: 2px solid #d0d0d0;
+  padding: 10px;
+  background-color: #fff;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  margin-left: 55px;
+}
+
+/* Add spacing between date tiles */
+.react-calendar__month-view__days__day {
+  padding: 10px !important; /* Increases tile padding */
+  margin: 2px !important;   /* Creates spacing between tiles */
+  border-radius: 8px;       /* Slight rounding for each date tile */
+  transition: all 0.2s ease-in-out;
+}
+
+/* When a tile is active or highlighted (selected dates) */
+.react-calendar__tile--active {
+  background-color: #007bff !important;
+  color: white !important;
+  border-radius: 50% !important; /* Make selected tiles circular */
+}
+
+/* Cultivation dates (green) */
+.cultivation-date {
+  background-color: rgba(0, 128, 0, 0.2) !important;
+  border-radius: 50% !important;
+}
+
+/* Harvest dates (red) */
+.harvest-date {
+  background-color: rgba(255, 0, 0, 0.2) !important;
+  border-radius: 50% !important;
+}
+
+/* Hover effect */
+.react-calendar__tile:hover {
+  background-color: #e6f7ff !important;
+  transform: scale(1.05);
+}
