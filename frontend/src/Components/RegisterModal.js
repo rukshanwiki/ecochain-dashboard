@@ -1,96 +1,3 @@
-// import React, { useState } from 'react';
-// import { Modal, Button, Form, Alert } from 'react-bootstrap';
-
-// const RegisterModal = ({ show, handleClose, openLogin }) => {
-//   const [success, setSuccess] = useState(false);
-
-//   const handleRegister = () => {
-//     // Simulate registration success
-//     setSuccess(true);
-//     setTimeout(() => {
-//       setSuccess(false);
-//       handleClose();
-//       openLogin(); // open login modal after registration
-//     }, 1500);
-//   };
-
-//   return (
-//     <Modal show={show} onHide={handleClose} centered>
-//       <Modal.Header closeButton>
-//         <Modal.Title>Register (Farmers Only)</Modal.Title>
-//       </Modal.Header>
-
-//       <Modal.Body>
-//         <Form>
-//           <Form.Group className="mb-3">
-//             <Form.Label>Full Name</Form.Label>
-//             <Form.Control type="text" placeholder="Enter your name" />
-//           </Form.Group>
-//           <Form.Group className="mb-3">
-//             <Form.Label>NIC Number</Form.Label>
-//             <Form.Control type="text" placeholder="National Identity Card" />
-//           </Form.Group>
-//           <Form.Group className="mb-3">
-//             <Form.Label>Farmer Registration Number</Form.Label>
-//             <Form.Control type="text" placeholder="Ex: AG1234" />
-//           </Form.Group>
-//           <Form.Group className="mb-3">
-//             <Form.Label>Province</Form.Label>
-//             <Form.Control type="text" placeholder="Ex: Western" />
-//           </Form.Group>
-//           <Form.Group className="mb-3">
-//             <Form.Label>District</Form.Label>
-//             <Form.Control type="text" placeholder="Ex: Gampaha" />
-//           </Form.Group>
-//           <Form.Group className="mb-3">
-//             <Form.Label>Email</Form.Label>
-//             <Form.Control type="email" placeholder="Ex: example@gmail.com" />
-//           </Form.Group>
-//           <Form.Group className="mb-3">
-//             <Form.Label>Mobile Number</Form.Label>
-//             <Form.Control type="tel" placeholder="Enter mobile number" />
-//           </Form.Group>
-//           <Form.Group className="mb-3">
-//             <Form.Label>Password</Form.Label>
-//             <Form.Control type="password" placeholder="Password" />
-//           </Form.Group>
-//           <Form.Group className="mb-3">
-//             <Form.Label>Confirm Password</Form.Label>
-//             <Form.Control type="password" placeholder="Confirm Password" />
-//           </Form.Group>
-
-//           {success && (
-//             <Alert variant="success" className="fw-bold text-success">
-//               🎉 Registration successful! Redirecting to login...
-//             </Alert>
-//           )}
-//         </Form>
-
-//         <p className="mt-3 text-center">
-//           Already have an account?{" "}
-//           <span
-//             style={{ color: "#007bff", cursor: "pointer" }}
-//             onClick={() => {
-//               handleClose();
-//               openLogin();
-//             }}
-//           >
-//             Login
-//           </span>
-//         </p>
-//       </Modal.Body>
-
-//       <Modal.Footer>
-//         <Button variant="secondary" onClick={handleClose}>Cancel</Button>
-//         <Button variant="primary" onClick={handleRegister}>Register</Button>
-//       </Modal.Footer>
-//     </Modal>
-//   );
-// };
-
-// export default RegisterModal;
-
-
 import React, { useState } from "react";
 import { Modal, Button, Form, Alert } from "react-bootstrap";
 import axios from "axios";
@@ -121,47 +28,47 @@ const RegisterModal = ({ show, handleClose, openLogin }) => {
     setError("");
     setSuccess(false);
 
-    // Simple validation
-    const mandatoryFields = [
-      "fullName",
-      "nic",
-      "farmerRegNo",
-      "province",
-      "district",
-      "email",
-      "mobile",
-      "password",
-      "confirmPassword",
-    ];
-
-    for (let field of mandatoryFields) {
-      if (!formData[field]) {
-        setError(`❌ ${field} is required`);
+    // Validation: check all fields
+    for (let key of Object.keys(formData)) {
+      if (!formData[key]) {
+        setError(`❌ ${key} is required`);
         return;
       }
     }
 
+    // Password match check
     if (formData.password !== formData.confirmPassword) {
       setError("❌ Passwords do not match");
       return;
     }
 
     try {
+      // Prepare payload (remove confirmPassword)
+      const payload = { ...formData };
+      delete payload.confirmPassword;
+
+      // ✅ Send POST with JSON header
       const res = await axios.post(
         "http://localhost:5000/api/auth/register",
-        formData
+        payload,
+        {
+          headers: { "Content-Type": "application/json" },
+        }
       );
 
-      if (res.data.message) {
+      if (res.data.success) {
         setSuccess(true);
         setError("");
         setTimeout(() => {
           setSuccess(false);
           handleClose();
-          openLogin(); // open login modal after successful registration
+          openLogin(); // open login modal after registration
         }, 2000);
+      } else {
+        setError(res.data.message || "❌ Registration failed");
       }
     } catch (err) {
+      console.error("Registration error:", err.response?.data || err.message);
       setError(err.response?.data?.message || "❌ Registration failed");
     }
   };
@@ -174,6 +81,7 @@ const RegisterModal = ({ show, handleClose, openLogin }) => {
 
       <Modal.Body>
         <Form>
+          {/* Form Fields */}
           {[
             { label: "Full Name", name: "fullName" },
             { label: "NIC Number", name: "nic" },
@@ -197,6 +105,7 @@ const RegisterModal = ({ show, handleClose, openLogin }) => {
             </Form.Group>
           ))}
 
+          {/* Alerts */}
           {error && <Alert variant="danger">{error}</Alert>}
           {success && (
             <Alert variant="success">
@@ -232,5 +141,4 @@ const RegisterModal = ({ show, handleClose, openLogin }) => {
 };
 
 export default RegisterModal;
-
 

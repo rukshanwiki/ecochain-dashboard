@@ -1,9 +1,8 @@
-// CalendarPage.js
 import React, { useEffect, useState } from "react";
 import Calendar from "react-calendar";
-import 'react-calendar/dist/Calendar.css';
-import { Container } from "react-bootstrap";
-import '../CSS/App.css'
+import "react-calendar/dist/Calendar.css";
+import { Container, Row, Col } from "react-bootstrap";
+import "../CSS/CalendarPage.css";
 
 const CalendarPage = () => {
   const [declarations, setDeclarations] = useState([]);
@@ -18,53 +17,67 @@ const CalendarPage = () => {
     return () => window.removeEventListener("declarationsUpdated", loadData);
   }, []);
 
-  // Extract all cultivation and harvesting dates from declarations
-  const dateInfo = {};
-  declarations.forEach(item => {
-    if (item.cultivationDate) {
-      const d = item.cultivationDate;
-      if (!dateInfo[d]) dateInfo[d] = [];
-      dateInfo[d].push({ type: "cultivation", product: item.product });
-    }
-    if (item.harvestingDate) {
-      const d = item.harvestingDate;
-      if (!dateInfo[d]) dateInfo[d] = [];
-      dateInfo[d].push({ type: "harvest", product: item.product });
-    }
-  });
+  const buildDateMap = (type) => {
+    const dateInfo = {};
+    declarations.forEach((item) => {
+      const start = type === "cultivation" ? item.cultivationStart : item.harvestingStart;
+      const end = type === "cultivation" ? item.cultivationEnd : item.harvestingEnd;
+      if (!start || !end) return;
+      const startDate = new Date(start);
+      const endDate = new Date(end);
+      for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+        const dateStr = d.toISOString().split("T")[0];
+        if (!dateInfo[dateStr]) dateInfo[dateStr] = [];
+        dateInfo[dateStr].push(item.units || 0);
+      }
+    });
+    return dateInfo;
+  };
 
+  const cultivationDates = buildDateMap("cultivation");
+  const harvestDates = buildDateMap("harvest");
 
-  const tileClassName = ({ date, view }) => {
-  if (view !== 'month') return null;
+  const tileContent = (dateInfo) => ({ date, view }) => {
+    if (view !== "month") return null;
+    const dateStr = date.toISOString().split("T")[0];
+    const totalUnits = dateInfo[dateStr]?.reduce((a, b) => a + b, 0);
+    return totalUnits
+      ? <div style={{ fontSize: "0.7rem", color: "#28a745" }}>{totalUnits} units</div>
+      : null;
+  };
 
-  const dateStr = date.toISOString().split('T')[0];
-  if (dateInfo[dateStr]) {
-    if (dateInfo[dateStr].some(d => d.type === "cultivation")) {
-      return "cultivation-date"; // green background
-    }
-    if (dateInfo[dateStr].some(d => d.type === "harvest")) {
-      return "harvest-date"; // red background
-    }
-  }
-  return null;
-};
-
+  const tileClassName = (dateInfo, colorClass) => ({ date, view }) => {
+    if (view !== "month") return null;
+    const dateStr = date.toISOString().split("T")[0];
+    return dateInfo[dateStr] ? colorClass : null;
+  };
 
   return (
     <Container className="mt-5">
-      <h2 className="fw-bold mb-4">Cultivation & Harvest Calendar</h2>
-      <Container className="mt-5 d-flex justify-content-center">
-        <div className="calendar-wrapper">
-          <Calendar
-            tileClassName={tileClassName}
-          />
-        </div>
-      </Container>
+      <h2 className="fw-bold mb-4">Cultivation & Harvest Calendars</h2>
 
-      <div className="mt-4">
-        <strong>Legend:</strong> 
-        <span style={{ color: 'green', marginLeft: '10px' }}>● Cultivation</span>
-        <span style={{ color: 'red', marginLeft: '10px' }}>● Harvest</span>
+      <Row className="justify-content-center">
+        <Col md={5}>
+          <h5 className="text-center mb-3">Cultivation Calendar</h5>
+          <Calendar
+            tileClassName={tileClassName(cultivationDates, "cultivation-date")}
+            tileContent={tileContent(cultivationDates)}
+          />
+        </Col>
+
+        <Col md={5}>
+          <h5 className="text-center mb-3">Harvesting Calendar</h5>
+          <Calendar
+            tileClassName={tileClassName(harvestDates, "harvest-date")}
+            tileContent={tileContent(harvestDates)}
+          />
+        </Col>
+      </Row>
+
+      <div className="mt-4 text-center">
+        <strong>Legend:</strong>
+        <span style={{ color: "green", marginLeft: "10px" }}>● Cultivation Dates</span>
+        <span style={{ color: "red", marginLeft: "10px" }}>● Harvest Dates</span>
       </div>
     </Container>
   );
