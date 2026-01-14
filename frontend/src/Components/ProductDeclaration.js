@@ -141,9 +141,36 @@ const ProductDeclaration = () => {
 
   return (
     <Container className="mt-5 mb-5">
-      <Row className="mb-4">
-        <Col><h3 className="fw-bold">Product Declaration</h3></Col>
+      
+      {/* --- ROW 1: TITLE --- */}
+      <Row className="mb-3">
+        <Col>
+          <h3 className="fw-bold text-secondary">Product Declaration</h3>
+        </Col>
       </Row>
+
+      {/* --- ROW 2: CENTERED BUTTON --- */}
+      <Row className="mb-5 justify-content-center">
+        <Col xs="auto">
+          <Button 
+            variant="success" 
+            onClick={() => navigate("/forecasting")}
+            className="shadow-sm"
+            style={{ 
+              fontSize: "1.1rem",       
+              padding: "12px 0",         // Thin vertical padding
+              width: "700px",           // Wide fixed width
+              borderRadius: "25px",     
+              border: "1px solid #145c26", 
+              fontWeight: "600",
+              letterSpacing: "1px"
+            }}
+          >
+            📊 Check Forecasting
+          </Button>
+        </Col>
+      </Row>
+      {/* ----------------------------------------------- */}
 
       <Form onSubmit={handleSubmit}>
         <Row className="mb-3">
