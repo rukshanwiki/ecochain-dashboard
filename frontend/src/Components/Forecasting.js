@@ -1379,3 +1379,4 @@ const Forecasting = () => {
 };
 
 export default Forecasting;
+
