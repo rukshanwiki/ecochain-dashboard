@@ -49,7 +49,7 @@ const RegisterModal = ({ show, handleClose, openLogin }) => {
 
       // ✅ Send POST with JSON header
       const res = await axios.post(
-        "http://localhost:5000/api/auth/register",
+        "https://ecochain-dashboard-backend.onrender.com/api/auth/register",
         payload,
         {
           headers: { "Content-Type": "application/json" },
