@@ -1,0 +1,38 @@
+/* --- Harvest Timeline Styles --- */
+.timeline-container {
+  margin: 2rem 30px;
+  border: #6c757d;
+  border-radius: 5px;
+}
+
+.timeline-card {
+  transition: all 0.3s ease;
+  cursor: pointer;
+  border: none;
+  border-radius: 15px;
+  background-color: white;
+  min-width: 100px;
+}
+
+/* Side Cards (Previous/Next days) */
+.timeline-side {
+  transform: scale(0.85);
+  opacity: 0.6;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+  color: #6c757d;
+}
+
+.timeline-side:hover {
+  transform: scale(0.9);
+  opacity: 0.9;
+  background-color: #f8f9fa;
+}
+
+/* Center Card (Today/Selected) */
+.timeline-center {
+  transform: scale(1.1);
+  z-index: 10;
+  box-shadow: 0 10px 20px rgba(27, 94, 32, 0.2); /* Greenish shadow */
+  border: 2px solid #28a745;
+  min-width: 140px;
+}

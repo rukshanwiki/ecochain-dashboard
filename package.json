@@ -1,7 +1,9 @@
 {
   "dependencies": {
     "dotenv": "^17.2.3",
+    "i18next": "^26.0.8",
     "mongodb": "^7.0.0",
-    "mongoose": "^8.19.3"
+    "mongoose": "^8.19.3",
+    "react-i18next": "^17.0.4"
   }
 }

@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import CultivationMap from "./CultivationMap";
 import CalendarPage from "./CalendarPage";
 import FilterSummary from "./FilterSummary";
+import HarvestTimeline from "./HarvestTimeline"; // ✅ Import the new component
 import "../CSS/Dashboard.css";
 
 const Dashboard = () => {
@@ -40,6 +41,7 @@ const Dashboard = () => {
 
   const handleSelect = (eventKey) => setSelectedVeg(eventKey);
 
+  // Filter Logic
   const filteredLocations = allDeclarations.filter(item => {
     if (!item || !item.product) return false;
     if (selectedVeg === "All") return true;
@@ -77,6 +79,9 @@ const Dashboard = () => {
           </Button>
         </Col>
       </Row>
+
+      {/* ✅ NEW: Harvest Timeline Section */}
+      <HarvestTimeline declarations={filteredLocations} />
 
       <div style={{ textAlign: "left", margin: "4rem 30px" }}>
         <h2 style={{ marginBottom: "1rem", marginLeft: "4rem" }}>Cultivation Map</h2>

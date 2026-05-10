@@ -1,71 +1,105 @@
-/* Make the entire calendar rounded and elegant */
+/* --- General Calendar Reset --- */
 .react-calendar {
-  border-radius: 20px; /* Rounded corners for full calendar */
-  overflow: hidden; /* So the radius applies properly */
-  border: 2px solid #d0d0d0;
-  padding: 10px;
-  background-color: #fff;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  margin-left: 55px;
-}
-
-/* Add spacing between date tiles */
-.react-calendar__month-view__days__day {
-  padding: 10px !important; /* Increases tile padding */
-  margin: 2px !important;   /* Creates spacing between tiles */
-  border-radius: 8px;       /* Slight rounding for each date tile */
-  transition: all 0.2s ease-in-out;
-}
-
-/* When a tile is active or highlighted (selected dates) */
-.react-calendar__tile--active {
-  background-color: #007bff !important;
-  color: white !important;
-  border-radius: 50% !important; /* Make selected tiles circular */
-}
-
-/* Cultivation dates (green) */
-.cultivation-date {
-  background-color: rgba(0, 128, 0, 0.2) !important;
-  border-radius: 50% !important;
-}
-
-/* Harvest dates (red) */
-.harvest-date {
-  background-color: rgba(255, 0, 0, 0.2) !important;
-  border-radius: 50% !important;
-}
-
-/* Hover effect */
-.react-calendar__tile:hover {
-  background-color: #e6f7ff !important;
-  transform: scale(1.05);
-}
-
-/* Add this to ../CSS/CalendarPage.css or Dashboard.css */
-
-.cultivation-date {
-  background-color: #e8f5e9 !important; /* Light Green */
-  border-radius: 50%;
-  font-weight: bold;
-}
-
-.harvest-date {
-  background-color: #ffebee !important; /* Light Red */
-  border-radius: 50%;
-  font-weight: bold;
-}
-
-.react-calendar {
+  width: 100% !important;
   border: none;
-  width: 100%;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: transparent;
 }
 
-.fade-in-section {
-  animation: fadeIn 1s;
+/* --- THE CRITICAL FIX: TILE LAYOUT --- */
+/* 1. Force the grid to behave strictly */
+.react-calendar__month-view__days {
+  display: grid !important;
+  grid-template-columns: repeat(7, 1fr); /* Exactly 7 columns */
+  gap: 2px; /* Tiny gap between tiles */
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+/* 2. Style the individual Day Tiles */
+.react-calendar__tile {
+  /* Set a moderate fixed height - big enough for 2 lines, not huge */
+  height: 58px !important; 
+  /* Ensure padding doesn't add to height */
+  box-sizing: border-box !important;
+  padding: 4px 2px !important;
+  
+  /* Flexbox to stack content vertically */
+  display: flex !important;
+  flex-direction: column;
+  justify-content: flex-start; /* Start content at the top */
+  align-items: center;
+  
+  /* CRITICAL: Prevent spilling into neighboring tiles */
+  overflow: hidden; 
+  position: relative;
+  border-radius: 6px;
+  border: 1px solid transparent; /* Placeholder for border */
+}
+
+/* 3. Style the Date Number (e.g., the "10") */
+.react-calendar__tile abbr {
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1;
+  margin-bottom: 4px; /* Tiny space between date and units */
+  flex-shrink: 0; /* Ensure date number never shrinks */
+}
+
+/* 4. Style the Unit Text container (inserted via React) */
+.react-calendar__tile div {
+  font-size: 0.65rem !important; /* Small font to fit */
+  font-weight: bold;
+  white-space: nowrap;     /* Force one line */
+  overflow: hidden;        /* Hide overflow */
+  text-overflow: ellipsis; /* Add "..." if too long */
+  max-width: 98%;          /* Ensure it doesn't hit edges */
+  line-height: 1.1;
+  padding: 1px 3px;
+  border-radius: 4px;
+  /* Optional: slight background to make text pop against color tile */
+  background-color: rgba(255,255,255,0.4); 
+}
+
+
+/* --- Cultivation Tiles (Green) --- */
+.cultivation-tile {
+  background: #e8f5e9 !important;
+  color: #1b5e20;
+  border: 1px solid #a5d6a7 !important; /* Explicit border helps separation */
+}
+
+.cultivation-tile:hover {
+  background: #c8e6c9 !important;
+}
+
+.cultivation-tile div {
+  color: #1b5e20 !important;
+}
+
+/* --- Harvest Tiles (Red) --- */
+.harvest-tile {
+  background: #ffebee !important;
+  color: #b71c1c;
+  border: 1px solid #ef9a9a !important; /* Explicit border helps separation */
+}
+
+.harvest-tile:hover {
+  background: #ffcdd2 !important;
+}
+
+.harvest-tile div {
+  color: #b71c1c !important;
+}
+
+/* --- Navigation & Weekday Headers (Cleanup) --- */
+.react-calendar__navigation button {
+  min-width: 44px;
+  background: none;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+.react-calendar__month-view__weekdays {
+ font-size: 0.8rem;
+ font-weight: bold;
+ text-transform: uppercase;
+ opacity: 0.7;
 }
