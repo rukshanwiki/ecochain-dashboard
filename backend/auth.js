@@ -5,24 +5,32 @@ import User from "./User.js";
 
 const router = express.Router();
 
+// ✅ CHECK NIC (Real-time)
+router.get("/check-nic/:nic", async (req, res) => {
+  try {
+    const existingUser = await User.findOne({ nic: req.params.nic });
+    res.json({ exists: !!existingUser });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error checking NIC" });
+  }
+});
+
 // ✅ REGISTER
 router.post("/register", async (req, res) => {
   try {
-    const { fullName, nic, farmerRegNo, province, district, email, mobile, password } = req.body;
+    const { fullName, nic, farmerRegNo, province, district, mobile, password } = req.body;
 
-    if (!fullName || !nic || !farmerRegNo || !province || !district || !email || !mobile || !password) {
-      return res.status(400).json({ success: false, message: "All fields are required" });
+    // 1. Check mandatory fields 
+    if (!fullName || !nic || !farmerRegNo || !province || !district || !mobile || !password) {
+      return res.status(400).json({ success: false, message: "Please fill all required fields (*)" });
     }
+
+    // 2. Uniqueness checks
+    const existingNIC = await User.findOne({ nic });
+    if (existingNIC) return res.status(400).json({ success: false, message: "NIC already registered" });
 
     const existingFarmer = await User.findOne({ farmerRegNo });
-    if (existingFarmer) {
-      return res.status(400).json({ success: false, message: "Farmer already registered" });
-    }
-
-    const existingEmail = await User.findOne({ email });
-    if (existingEmail) {
-      return res.status(400).json({ success: false, message: "Email already in use" });
-    }
+    if (existingFarmer) return res.status(400).json({ success: false, message: "Farmer Reg No already exists" });
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -32,68 +40,20 @@ router.post("/register", async (req, res) => {
       farmerRegNo,
       province,
       district,
-      email,
       mobile,
       password: hashedPassword,
       role: "farmer",
     });
 
     await newUser.save();
+    res.status(201).json({ success: true, message: "Registration successful" });
 
-    return res.status(201).json({
-      success: true,
-      message: "Registration successful",
-    });
   } catch (err) {
     console.error("❌ Register error:", err);
-    return res.status(500).json({ success: false, message: "Server error during registration" });
+    res.status(500).json({ success: false, message: "Database error: " + err.message });
   }
 });
 
-// ✅ LOGIN
-router.post("/login", async (req, res) => {
-  try {
-    const { farmerRegNo, password } = req.body;
-
-    if (!farmerRegNo || !password) {
-      return res.status(400).json({
-        success: false,
-        message: "Farmer registration number and password are required",
-      });
-    }
-
-    const user = await User.findOne({ farmerRegNo });
-    if (!user) {
-      return res.status(404).json({ success: false, message: "Farmer not found" });
-    }
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(401).json({ success: false, message: "Incorrect password" });
-    }
-
-    const token = jwt.sign(
-      { id: user._id, farmerRegNo: user.farmerRegNo, role: user.role },
-      process.env.JWT_SECRET || "ecoChainSecret",
-      { expiresIn: "1h" }
-    );
-
-    return res.json({
-      success: true,
-      message: "Login successful",
-      token,
-      user: {
-        id: user._id,
-        fullName: user.fullName,
-        farmerRegNo: user.farmerRegNo,
-        email: user.email,
-        role: user.role,
-      },
-    });
-  } catch (err) {
-    console.error("❌ Login error:", err);
-    return res.status(500).json({ success: false, message: "Server error during login" });
-  }
-});
-
+// ✅ LOGIN (Keep your existing login code...)
+// ...
 export default router;

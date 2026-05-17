@@ -1,28 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Container, Row, Col, Form, Button, InputGroup, Modal } from "react-bootstrap";
-import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
-import "leaflet/dist/leaflet.css";
-import L from "leaflet";
+import { Container, Row, Col, Form, Button, InputGroup, Modal, Card } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
-
-// --- Map Marker Icon ---
-const redIcon = new L.Icon({
-  iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
-  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41],
-});
-
-function LocationPicker({ setSelectedLocation }) {
-  useMapEvents({
-    click(e) {
-      setSelectedLocation(e.latlng);
-    },
-  });
-  return null;
-}
+import "../CSS/ProductDeclaration.css"; 
 
 // --- PRODUCT DATA (Default Growth Durations) ---
 const productData = {
@@ -40,33 +19,34 @@ const productData = {
   Beetroot: { rate: 200, defaultDuration: 65 },
 };
 
+// --- SRI LANKA GEOGRAPHIC DATA (Province & Districts) ---
+const locationData = {
+  "Central": ["Kandy", "Matale", "Nuwara Eliya"],
+  "Eastern": ["Ampara", "Batticaloa", "Trincomalee"],
+  "North Central": ["Anuradhapura", "Polonnaruwa"],
+  "North Western": ["Kurunegala", "Puttalam"],
+  "Northern": ["Jaffna", "Kilinochchi", "Mannar", "Mullaitivu", "Vavuniya"],
+  "Sabaragamuwa": ["Kegalle", "Ratnapura"],
+  "Southern": ["Galle", "Hambantota", "Matara"],
+  "Uva": ["Badulla", "Moneragala"],
+  "Western": ["Colombo", "Gampaha", "Kalutara"]
+};
+
 const ProductDeclaration = () => {
   const navigate = useNavigate();
   const durationInputRef = useRef(null);
 
   const [isDurationEditable, setIsDurationEditable] = useState(false);
-  const [showSuccessModal, setShowSuccessModal] = useState(false); // NEW: State for Success Popup
+  const [showSuccessModal, setShowSuccessModal] = useState(false); 
   
   const [formData, setFormData] = useState({
-    product: "",
-    area: "",
-    units: "",
-    cultivationStart: "",
-    cultivationDays: "",
-    cultivationEnd: "",
-    growthDuration: "", // Days until Harvest starts
-    harvestDays: "",    // How many days the harvest will take (Dropdown)
-    harvestingDate: "", // Harvest Start Date
-    harvestingEnd: "",  // Calculated: Start Date + harvestDays
-    locationText: "",
-    comments: "",
+    product: "", area: "", units: "", cultivationStart: "", cultivationDays: "", cultivationEnd: "", 
+    growthDuration: "", harvestDays: "", harvestingDate: "", harvestingEnd: "", province: "", district: "", comments: "",
   });
-
-  const [selectedLocation, setSelectedLocation] = useState(null);
 
   const daysArray = Array.from({ length: 31 }, (_, i) => i + 1);
 
-  // 1. Auto-Calculate Units & Fill Default Duration on Product Change
+  // 1. Auto-Calculate Units & Fill Default Duration
   useEffect(() => {
     if (formData.product) {
       const productInfo = productData[formData.product];
@@ -84,7 +64,6 @@ const ProductDeclaration = () => {
     if (formData.cultivationStart) {
       const startDate = new Date(formData.cultivationStart);
 
-      // A. Calculate Cultivation End
       let calculatedCultivationEnd = "";
       if (formData.cultivationDays) {
         const endDate = new Date(startDate);
@@ -92,13 +71,10 @@ const ProductDeclaration = () => {
         calculatedCultivationEnd = endDate.toISOString().split('T')[0];
       }
 
-      // B. Calculate Harvest Dates
       if (formData.growthDuration) {
-        // Harvest Start Date
         const harvestDate = new Date(startDate);
         harvestDate.setDate(harvestDate.getDate() + parseInt(formData.growthDuration));
 
-        // Harvest End Date (Based on user selection for "harvestDays")
         let calculatedHarvestEnd = "";
         if (formData.harvestDays) {
           const harvestEndDate = new Date(harvestDate);
@@ -117,7 +93,12 @@ const ProductDeclaration = () => {
   }, [formData.cultivationStart, formData.cultivationDays, formData.growthDuration, formData.harvestDays]);
 
   const handleChange = (e) => {
-    setFormData({...formData, [e.target.name]: e.target.value});
+    const { name, value } = e.target;
+    if (name === "province") {
+      setFormData({ ...formData, province: value, district: "" });
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
   };
 
   const toggleDurationEdit = () => {
@@ -129,21 +110,15 @@ const ProductDeclaration = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!selectedLocation) {
-      alert("Please pick a location on the map before submitting.");
+    if (!formData.province || !formData.district) {
+      alert("Please select both a Province and a District.");
       return;
     }
 
     const newEntry = {
       id: Date.now(),
       ...formData,
-      cultivationEnd: formData.cultivationEnd, 
-      harvestingStart: formData.harvestingDate, 
-      harvestingEnd: formData.harvestingEnd,
-      location: {
-        lat: Number(selectedLocation.lat),
-        lng: Number(selectedLocation.lng),
-      }
+      locationText: `${formData.district}, ${formData.province}`
     };
 
     const existing = JSON.parse(localStorage.getItem("declarations") || "[]");
@@ -151,268 +126,228 @@ const ProductDeclaration = () => {
     localStorage.setItem("declarations", JSON.stringify(existing));
 
     window.dispatchEvent(new Event("declarationsUpdated"));
-    
-    // NEW: Show popup instead of navigating instantly
     setShowSuccessModal(true); 
   };
 
   const handleCloseModal = () => {
     setShowSuccessModal(false);
-    navigate("/dashboard"); // Navigate away after user acknowledges success
+    navigate("/dashboard");
   };
 
   const handleCancel = () => {
     setFormData({
-      product: "", area: "", units: "", cultivationStart: "", cultivationDays: "", cultivationEnd: "", growthDuration: "", harvestDays: "", harvestingDate: "", harvestingEnd: "", locationText: "", comments: "",
+      product: "", area: "", units: "", cultivationStart: "", cultivationDays: "", cultivationEnd: "", 
+      growthDuration: "", harvestDays: "", harvestingDate: "", harvestingEnd: "", province: "", district: "", comments: "",
     });
-    setSelectedLocation(null);
     setIsDurationEditable(false);
   };
 
   return (
-    <Container className="mt-5 mb-5">
-      <Row className="mb-3">
-        <Col>
-          <h3 className="fw-bold text-secondary">Product Declaration</h3>
-        </Col>
-      </Row>
+    <div className="declaration-wrapper pt-4">
+      <Container>
+        <Row className="mb-4 text-center">
+          <Col>
+            <h2 className="fw-bold" style={{ color: "#1B5E20" }}>New Crop Declaration</h2>
+            <p className="text-muted">Register your planting schedules to help predict market supply</p>
+          </Col>
+        </Row>
 
-      <Row className="mb-5 justify-content-center">
-        <Col xs={12} className="text-center">
-          <Button 
-            variant="success" 
-            onClick={() => navigate("/forecasting")}
-            className="shadow-sm"
-            style={{ 
-              fontSize: "1.1rem",      
-              padding: "12px 0",        
-              width: "100%",          
-              maxWidth: "700px",
-              borderRadius: "25px",    
-              border: "1px solid #145c26", 
-              fontWeight: "600",
-              letterSpacing: "1px"
-            }}
-          >
-            📊 Check Forecasting
-          </Button>
-        </Col>
-      </Row>
-      
-      <Form onSubmit={handleSubmit}>
+        {/* ✅ FIX 2: Dynamic Insights Banner explaining WHY they should check the forecast */}
+        <Row className="mb-5 justify-content-center">
+          <Col lg={10}>
+            <Card className="border-0 shadow-sm p-4" style={{ backgroundColor: "#E8F5E9", borderRadius: "15px" }}>
+              <Row className="align-items-center">
+                <Col md={8} className="mb-3 mb-md-0 text-start">
+                  <h5 className="fw-bold text-success mb-2">💡 Avoid Market Crashes & Maximize Profit</h5>
+                  <p className="text-muted mb-0" style={{ fontSize: "0.95rem", lineHeight: "1.5" }}>
+                    Before finalizing your crop choice, see what other farmers in Sri Lanka are growing this month. 
+                    If too many people declare the same crop, prices will drop. Use the forecasting tool to find profitable shortages!
+                  </p>
+                </Col>
+                <Col md={4} className="text-md-end">
+                  <Button 
+                    variant="success" 
+                    onClick={() => navigate("/forecasting")}
+                    className="w-100 fw-bold py-2 btn-custom-primary"
+                    style={{ borderRadius: "12px", fontSize: "0.95rem" }}
+                  >
+                    📊 View Live Market Trends
+                  </Button>
+                </Col>
+              </Row>
+            </Card>
+          </Col>
+        </Row>
         
-        {/* --- Form Section 1: Product Details --- */}
-        <h5 className="text-muted mb-3 border-bottom pb-2">1. Crop Details</h5>
-        <Row className="mb-4">
-          <Col xs={12} md={6} className="mb-3 mb-md-0">
-            <Form.Group>
-              <Form.Label>Select Product</Form.Label>
-              <Form.Select name="product" value={formData.product} onChange={handleChange} required>
-                <option value="">Select a product</option>
-                {Object.keys(productData).map((prod, i) => (
-                  <option key={i} value={prod}>{prod}</option>
-                ))}
-              </Form.Select>
-            </Form.Group>
-          </Col>
+        <Row className="justify-content-center">
+          <Col lg={10}>
+            <Card className="declaration-card p-4 p-md-5">
+              <Form onSubmit={handleSubmit}>
+                
+                {/* SECTION 1: CROP DETAILS */}
+                <h5 className="section-header">🌱 1. Crop Details</h5>
+                
+                {/* ✅ FIX 1a: Product Dropdown on its own separate row */}
+                <Row className="mb-3">
+                  <Col xs={12}>
+                    <Form.Group>
+                      <Form.Label className="fw-semibold">Select Product</Form.Label>
+                      <Form.Select className="custom-input" name="product" value={formData.product} onChange={handleChange} required>
+                        <option value="">Select a product...</option>
+                        {Object.keys(productData).map((prod, i) => (
+                          <option key={i} value={prod}>{prod}</option>
+                        ))}
+                      </Form.Select>
+                    </Form.Group>
+                  </Col>
+                </Row>
 
-          <Col xs={12} md={6}>
-            <Form.Group>
-              <Form.Label>Area of Cultivating (Hectares)</Form.Label>
-              <Form.Control
-                type="number"
-                name="area"
-                value={formData.area}
-                onChange={handleChange}
-                min="0.1"
-                step="0.1"
-                placeholder="Ex: 2"
-                required
-              />
-            </Form.Group>
-            <Form.Group className="mt-3">
-              <Form.Label>Calculated Units</Form.Label>
-              <Form.Control type="number" value={formData.units} readOnly className="bg-light text-muted" />
-            </Form.Group>
-          </Col>
-        </Row>
+                {/* ✅ FIX 1b: Cultivating Area and Calculated Yield combined side-by-side in one row */}
+                <Row className="mb-4">
+                  <Col xs={12} md={6} className="mb-3 mb-md-0">
+                    <Form.Group>
+                      <Form.Label className="fw-semibold">Area of Cultivating (Hectares)</Form.Label>
+                      <Form.Control className="custom-input" type="number" name="area" value={formData.area} onChange={handleChange} min="0.1" step="0.1" placeholder="Ex: 2" required />
+                    </Form.Group>
+                  </Col>
 
-        {/* --- Form Section 2: Timeline Estimates --- */}
-        <h5 className="text-muted mb-3 mt-4 border-bottom pb-2">2. Timeline Estimates</h5>
-        <Row className="mb-4">
-          
-          {/* Cultivation Column */}
-          <Col xs={12} md={6} className="mb-4 mb-md-0 pe-md-4">
-            <Form.Group className="mb-3">
-              <Form.Label className="text-primary fw-semibold">Cultivation Start Date</Form.Label>
-              <Form.Control
-                type="date"
-                name="cultivationStart"
-                value={formData.cultivationStart}
-                onChange={handleChange}
-                required
-              />
-            </Form.Group>
+                  <Col xs={12} md={6}>
+                    <Form.Group>
+                      <Form.Label className="fw-semibold text-muted">Calculated Yield (Units)</Form.Label>
+                      <Form.Control className="custom-input read-only-input" type="number" value={formData.units} readOnly />
+                    </Form.Group>
+                  </Col>
+                </Row>
 
-            <Form.Group className="mb-3">
-                <Form.Label>Days to finish Cultivation</Form.Label>
-                <Form.Select 
-                    name="cultivationDays" 
-                    value={formData.cultivationDays} 
-                    onChange={handleChange}
-                    required
-                >
-                    <option value="">Select days (1-31)...</option>
-                    {daysArray.map(d => (
-                        <option key={d} value={d}>{d} {d === 1 ? 'Day' : 'Days'}</option>
-                    ))}
-                </Form.Select>
-            </Form.Group>
+                {/* SECTION 2: TIMELINE */}
+                <h5 className="section-header mt-5">⏳ 2. Timeline Estimates</h5>
+                <Row className="mb-4">
+                  <Col xs={12} md={6} className="mb-4 mb-md-0 pe-md-4 border-end-md border-light">
+                    <Form.Group className="mb-3">
+                      <Form.Label className="fw-semibold text-success">Cultivation Start Date</Form.Label>
+                      <Form.Control className="custom-input" type="date" name="cultivationStart" value={formData.cultivationStart} onChange={handleChange} required />
+                    </Form.Group>
+                    <Form.Group className="mb-3">
+                        <Form.Label className="fw-semibold">Days to finish Cultivation</Form.Label>
+                        <Form.Select className="custom-input" name="cultivationDays" value={formData.cultivationDays} onChange={handleChange} required>
+                            <option value="">Select days...</option>
+                            {daysArray.map(d => (
+                                <option key={d} value={d}>{d} {d === 1 ? 'Day' : 'Days'}</option>
+                            ))}
+                        </Form.Select>
+                    </Form.Group>
+                    <Form.Group className="mb-3">
+                      <Form.Label className="fw-semibold text-muted">Cultivation End Date</Form.Label>
+                      <Form.Control className="custom-input read-only-input" type="date" value={formData.cultivationEnd} readOnly />
+                    </Form.Group>
+                  </Col>
 
-            <Form.Group className="mb-3">
-              <Form.Label>Cultivation End Date</Form.Label>
-              <Form.Control 
-                  type="date" 
-                  value={formData.cultivationEnd} 
-                  readOnly 
-                  className="bg-light text-muted" 
-              />
-            </Form.Group>
-          </Col>
+                  <Col xs={12} md={6} className="ps-md-4">
+                    <Form.Group className="mb-3">
+                        <Form.Label className="fw-semibold">Days until Harvest Starts</Form.Label>
+                        <InputGroup>
+                            <Form.Control 
+                                ref={durationInputRef} type="number" name="growthDuration" value={formData.growthDuration} 
+                                onChange={handleChange} readOnly={!isDurationEditable}
+                                className={`custom-input ${!isDurationEditable ? 'read-only-input' : 'border-success'}`} required
+                                style={{ borderTopRightRadius: 0, borderBottomRightRadius: 0 }}
+                            />
+                            <Button variant={isDurationEditable ? "success" : "outline-secondary"} onClick={toggleDurationEdit} style={{ borderTopRightRadius: '12px', borderBottomRightRadius: '12px' }}>
+                                ✏️ {isDurationEditable ? "Save" : "Edit"}
+                            </Button>
+                        </InputGroup>
+                    </Form.Group>
+                    <Form.Group className="mb-3">
+                        <Form.Label className="fw-semibold">Days needed for Harvesting</Form.Label>
+                        <Form.Select className="custom-input" name="harvestDays" value={formData.harvestDays} onChange={handleChange} required>
+                            <option value="">Select days...</option>
+                            {daysArray.map(d => (
+                                <option key={d} value={d}>{d} {d === 1 ? 'Day' : 'Days'}</option>
+                            ))}
+                        </Form.Select>
+                    </Form.Group>
+                    <Row>
+                      <Col xs={6}>
+                        <Form.Group className="mb-3">
+                            <Form.Label className="text-success fw-bold">Harvest Start</Form.Label>
+                            <Form.Control type="date" value={formData.harvestingDate} readOnly className="custom-input bg-success bg-opacity-10 text-success fw-bold border-success" />
+                        </Form.Group>
+                      </Col>
+                      <Col xs={6}>
+                        <Form.Group className="mb-3">
+                            <Form.Label className="text-danger fw-bold">Harvest End</Form.Label>
+                            <Form.Control type="date" value={formData.harvestingEnd} readOnly className="custom-input bg-danger bg-opacity-10 text-danger fw-bold border-danger" />
+                        </Form.Group>
+                      </Col>
+                    </Row>
+                  </Col>
+                </Row>
 
-          {/* Harvest Column */}
-          <Col xs={12} md={6}>
-            <Form.Group className="mb-3">
-                <Form.Label>Days until Harvest Starts (Growth Duration)</Form.Label>
-                <InputGroup>
-                    <Form.Control 
-                        ref={durationInputRef}
-                        type="number"
-                        name="growthDuration"
-                        value={formData.growthDuration}
-                        onChange={handleChange}
-                        readOnly={!isDurationEditable}
-                        className={isDurationEditable ? "bg-white border-primary" : "bg-light text-muted"}
-                        required
-                    />
-                    <Button 
-                        variant={isDurationEditable ? "primary" : "outline-secondary"} 
-                        onClick={toggleDurationEdit}
-                        title="Edit Duration"
-                    >
-                        ✏️ {isDurationEditable ? "Save" : "Edit"}
-                    </Button>
-                </InputGroup>
-            </Form.Group>
+                {/* SECTION 3: LOCATION */}
+                <h5 className="section-header mt-5">📍 3. Location Details</h5>
+                <Row className="mb-4">
+                  <Col xs={12} md={6} className="mb-3">
+                    <Form.Group>
+                      <Form.Label className="fw-semibold">Province</Form.Label>
+                      <Form.Select className="custom-input" name="province" value={formData.province} onChange={handleChange} required>
+                        <option value="">-- Select Province --</option>
+                        {Object.keys(locationData).sort().map((prov, i) => (
+                          <option key={i} value={prov}>{prov} Province</option>
+                        ))}
+                      </Form.Select>
+                    </Form.Group>
+                  </Col>
 
-            <Form.Group className="mb-3">
-                <Form.Label className="text-dark fw-semibold">Days needed for Harvesting</Form.Label>
-                <Form.Select 
-                    name="harvestDays"
-                    value={formData.harvestDays}
-                    onChange={handleChange}
-                    required
-                >
-                    <option value="">Select days (1-31)...</option>
-                    {daysArray.map(d => (
-                        <option key={d} value={d}>{d} {d === 1 ? 'Day' : 'Days'}</option>
-                    ))}
-                </Form.Select>
-            </Form.Group>
+                  <Col xs={12} md={6} className="mb-3">
+                    <Form.Group>
+                      <Form.Label className="fw-semibold">District</Form.Label>
+                      <Form.Select className="custom-input" name="district" value={formData.district} onChange={handleChange} disabled={!formData.province} required>
+                        <option value="">{!formData.province ? "Select Province First" : "-- Select District --"}</option>
+                        {formData.province && locationData[formData.province].sort().map((dist, i) => (
+                          <option key={i} value={dist}>{dist}</option>
+                        ))}
+                      </Form.Select>
+                    </Form.Group>
+                  </Col>
+                </Row>
 
-            <Row>
-              <Col xs={6}>
-                <Form.Group className="mb-3">
-                    <Form.Label className="text-success fw-semibold">Harvest Start</Form.Label>
-                    <Form.Control 
-                        type="date" 
-                        value={formData.harvestingDate} 
-                        readOnly 
-                        className="bg-success text-white fw-bold border-success"
-                    />
-                </Form.Group>
-              </Col>
-              <Col xs={6}>
-                <Form.Group className="mb-3">
-                    <Form.Label className="text-danger fw-semibold">Harvest End</Form.Label>
-                    <Form.Control 
-                        type="date" 
-                        value={formData.harvestingEnd} 
-                        readOnly 
-                        className="bg-danger text-white fw-bold border-danger"
-                    />
-                </Form.Group>
-              </Col>
-            </Row>
-          </Col>
-        </Row>
+                <Row className="mb-5">
+                  <Col xs={12}>
+                    <Form.Group>
+                      <Form.Label className="fw-semibold">Comments</Form.Label>
+                      <Form.Control className="custom-input" as="textarea" rows={3} name="comments" value={formData.comments} onChange={handleChange} placeholder="Any special notes about this crop? (Optional)" />
+                    </Form.Group>
+                  </Col>
+                </Row>
 
-        {/* --- Form Section 3: Location & Comments --- */}
-        <h5 className="text-muted mb-3 mt-4 border-bottom pb-2">3. Location & Additional Info</h5>
-        <Row className="mb-4">
-          <Col xs={12}>
-            <Form.Label>Select Location on Map (click to place marker)</Form.Label>
-            <div style={{ height: "400px", border: "1px solid #ced4da", borderRadius: "8px", overflow: "hidden" }}>
-              <MapContainer center={[7.8731, 80.7718]} zoom={7} style={{ height: "100%", width: "100%" }}>
-                <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="© OpenStreetMap" />
-                <LocationPicker setSelectedLocation={setSelectedLocation} />
-                {selectedLocation && <Marker position={selectedLocation} icon={redIcon} />}
-              </MapContainer>
-            </div>
-            {selectedLocation && (
-              <p className="mt-2 text-muted fw-semibold">
-                📍 Selected Coordinates: {selectedLocation.lat.toFixed(6)}, {selectedLocation.lng.toFixed(6)}
-              </p>
-            )}
+                <Row className="mt-4 pt-3 border-top">
+                  <Col xs={12} className="d-flex justify-content-end gap-3">
+                    <Button type="button" className="btn-custom-secondary" onClick={handleCancel}>Clear Form</Button>
+                    <Button type="submit" className="btn-custom-primary">🚀 Submit Declaration</Button>
+                  </Col>
+                </Row>
+              </Form>
+            </Card>
           </Col>
         </Row>
 
-        <Row className="mb-4">
-          <Col xs={12} md={6}>
-            <Form.Group>
-              <Form.Label>Comments</Form.Label>
-              <Form.Control
-                as="textarea"
-                rows={2}
-                name="comments"
-                value={formData.comments}
-                onChange={handleChange}
-                placeholder="Optional comments about this batch"
-              />
-            </Form.Group>
-          </Col>
-        </Row>
+        {/* MODAL */}
+        <Modal show={showSuccessModal} onHide={handleCloseModal} centered backdrop="static">
+          <Modal.Header closeButton className="border-0 pb-0"></Modal.Header>
+          <Modal.Body className="text-center pb-4">
+            <div className="mb-3"><span style={{ fontSize: "3rem" }}>✅</span></div>
+            <h4 className="text-success fw-bold">Declaration Submitted!</h4>
+            <p className="text-muted mt-2">
+              Your product declaration for <strong>{formData.product}</strong> has been successfully saved.
+            </p>
+          </Modal.Body>
+          <Modal.Footer className="border-0 d-flex justify-content-center pb-4">
+            <Button variant="success" onClick={handleCloseModal} className="px-5 rounded-pill">Go to Dashboard</Button>
+          </Modal.Footer>
+        </Modal>
 
-        {/* --- Form Actions --- */}
-        <Row className="mt-2">
-          <Col xs={12} className="d-flex gap-3">
-            <Button variant="secondary" onClick={handleCancel} className="px-4">Cancel</Button>
-            <Button variant="primary" type="submit" className="px-5">Submit Declaration</Button>
-          </Col>
-        </Row>
-      </Form>
-
-      {/* --- SUCCESS MODAL --- */}
-      <Modal show={showSuccessModal} onHide={handleCloseModal} centered backdrop="static">
-        <Modal.Header closeButton className="border-0 pb-0">
-        </Modal.Header>
-        <Modal.Body className="text-center pb-4">
-          <div className="mb-3">
-            <span style={{ fontSize: "3rem" }}>✅</span>
-          </div>
-          <h4 className="text-success fw-bold">Declaration Submitted!</h4>
-          <p className="text-muted mt-2">
-            Your product declaration for <strong>{formData.product}</strong> has been successfully saved to the system.
-          </p>
-        </Modal.Body>
-        <Modal.Footer className="border-0 d-flex justify-content-center pb-4">
-          <Button variant="success" onClick={handleCloseModal} className="px-5 rounded-pill">
-            Go to Dashboard
-          </Button>
-        </Modal.Footer>
-      </Modal>
-
-    </Container>
+      </Container>
+    </div>
   );
 };
 

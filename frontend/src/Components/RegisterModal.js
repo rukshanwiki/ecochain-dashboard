@@ -1,6 +1,235 @@
+// import React, { useState } from "react";
+// import { Modal, Button, Form, Alert, Row, Col } from "react-bootstrap";
+// import axios from "axios";
+
+// // --- SRI LANKA GEOGRAPHIC DATA ---
+// const locationData = {
+//   "Central": ["Kandy", "Matale", "Nuwara Eliya"],
+//   "Eastern": ["Ampara", "Batticaloa", "Trincomalee"],
+//   "North Central": ["Anuradhapura", "Polonnaruwa"],
+//   "North Western": ["Kurunegala", "Puttalam"],
+//   "Northern": ["Jaffna", "Kilinochchi", "Mannar", "Mullaitivu", "Vavuniya"],
+//   "Sabaragamuwa": ["Kegalle", "Ratnapura"],
+//   "Southern": ["Galle", "Hambantota", "Matara"],
+//   "Uva": ["Badulla", "Moneragala"],
+//   "Western": ["Colombo", "Gampaha", "Kalutara"]
+// };
+
+// const RegisterModal = ({ show, handleClose, openLogin }) => {
+//   const [formData, setFormData] = useState({
+//     fullName: "",
+//     nic: "",
+//     farmerRegNo: "",
+//     province: "",
+//     district: "",
+//     email: "", 
+//     mobile: "",
+//     password: "",
+//     confirmPassword: "",
+//   });
+
+//   const [success, setSuccess] = useState(false);
+//   const [error, setError] = useState("");
+//   const [nicChecking, setNicChecking] = useState(false);
+
+//   const handleChange = (e) => {
+//     const { name, value } = e.target;
+//     if (name === "province") {
+//       setFormData({ ...formData, province: value, district: "" });
+//     } else {
+//       setFormData({ ...formData, [name]: value });
+//     }
+//   };
+
+//   // --- 1. NIC Logical Validation ---
+//   const validateNICLogic = (nic) => {
+//     const nicRegex = /^([0-9]{9}[vVxX]|[0-9]{12})$/;
+//     if (!nicRegex.test(nic)) return { valid: false, msg: "Invalid NIC format." };
+
+//     let dayOfYear;
+//     if (nic.length === 10) {
+//       dayOfYear = parseInt(nic.substring(2, 5));
+//     } else {
+//       dayOfYear = parseInt(nic.substring(4, 7));
+//     }
+
+//     // Gender check: Female days are 501-866
+//     const actualDay = dayOfYear > 500 ? dayOfYear - 500 : dayOfYear;
+//     if (actualDay < 1 || actualDay > 366) return { valid: false, msg: "Invalid date encoded in NIC." };
+
+//     return { valid: true };
+//   };
+
+//   // --- 2. Backend Existence Check ---
+//   const handleNicBlur = async () => {
+//     if (!formData.nic) return;
+    
+//     const logicCheck = validateNICLogic(formData.nic);
+//     if (!logicCheck.valid) {
+//       setError(`❌ ${logicCheck.msg}`);
+//       return;
+//     }
+
+//     setNicChecking(true);
+//     try {
+//       const res = await axios.get(`https://ecochain-dashboard-backend.onrender.com/api/auth/check-nic/${formData.nic}`);
+//       if (res.data.exists) {
+//         setError("❌ This NIC is already registered to another account.");
+//       } else {
+//         setError(""); // Clear error if unique
+//       }
+//     } catch (err) {
+//       console.error("NIC check error");
+//     } finally {
+//       setNicChecking(false);
+//     }
+//   };
+
+//   const handleRegister = async () => {
+//     setError("");
+//     setSuccess(false);
+
+//     // Basic required check (Email skipped)
+//     const required = ["fullName", "nic", "farmerRegNo", "province", "district", "mobile", "password"];
+//     for (let key of required) {
+//       if (!formData[key]) {
+//         setError(`❌ Please fill in the required field: ${key}`);
+//         return;
+//       }
+//     }
+
+//     if (formData.password !== formData.confirmPassword) {
+//       setError("❌ Passwords do not match");
+//       return;
+//     }
+
+//     try {
+//       const payload = { ...formData };
+//       delete payload.confirmPassword;
+
+//       const res = await axios.post(
+//         "https://ecochain-dashboard-backend.onrender.com/api/auth/register",
+//         payload
+//       );
+
+//       if (res.data.success) {
+//         setSuccess(true);
+//         setTimeout(() => {
+//           handleClose();
+//           openLogin();
+//         }, 2000);
+//       }
+//     } catch (err) {
+//       setError(err.response?.data?.message || "❌ Registration failed");
+//     }
+//   };
+
+//   return (
+//     <Modal show={show} onHide={handleClose} centered size="lg">
+//       <Modal.Header closeButton><Modal.Title>Farmer Registration</Modal.Title></Modal.Header>
+//       <Modal.Body>
+//         <Form>
+//           <Row>
+//             <Col md={6}>
+//               <Form.Group className="mb-3">
+//                 <Form.Label>Full Name *</Form.Label>
+//                 <Form.Control name="fullName" value={formData.fullName} onChange={handleChange} />
+//               </Form.Group>
+//             </Col>
+//             <Col md={6}>
+//               <Form.Group className="mb-3">
+//                 <Form.Label>NIC Number * {nicChecking && <small className="text-primary">(Checking...)</small>}</Form.Label>
+//                 <Form.Control name="nic" value={formData.nic} onChange={handleChange} onBlur={handleNicBlur} placeholder="e.g. 199012345678" />
+//               </Form.Group>
+//             </Col>
+//           </Row>
+
+//           <Row>
+//             <Col md={6}>
+//               <Form.Group className="mb-3">
+//                 <Form.Label>Province *</Form.Label>
+//                 <Form.Select name="province" value={formData.province} onChange={handleChange}>
+//                   <option value="">Select Province</option>
+//                   {Object.keys(locationData).map(p => <option key={p} value={p}>{p}</option>)}
+//                 </Form.Select>
+//               </Form.Group>
+//             </Col>
+//             <Col md={6}>
+//               <Form.Group className="mb-3">
+//                 <Form.Label>District *</Form.Label>
+//                 <Form.Select name="district" value={formData.district} onChange={handleChange} disabled={!formData.province}>
+//                   <option value="">Select District</option>
+//                   {formData.province && locationData[formData.province].map(d => <option key={d} value={d}>{d}</option>)}
+//                 </Form.Select>
+//               </Form.Group>
+//             </Col>
+//           </Row>
+
+//           <Row>
+//             <Col md={6}>
+//               <Form.Group className="mb-3">
+//                 <Form.Label>Farmer Reg No *</Form.Label>
+//                 <Form.Control name="farmerRegNo" value={formData.farmerRegNo} onChange={handleChange} />
+//               </Form.Group>
+//             </Col>
+//             <Col md={6}>
+//               <Form.Group className="mb-3">
+//                 <Form.Label>Mobile *</Form.Label>
+//                 <Form.Control name="mobile" value={formData.mobile} onChange={handleChange} />
+//               </Form.Group>
+//             </Col>
+//           </Row>
+
+//           <Form.Group className="mb-3">
+//             <Form.Label>Email (Optional)</Form.Label>
+//             <Form.Control name="email" type="email" value={formData.email} onChange={handleChange} />
+//           </Form.Group>
+
+//           <Row>
+//             <Col md={6}>
+//               <Form.Group className="mb-3">
+//                 <Form.Label>Password *</Form.Label>
+//                 <Form.Control name="password" type="password" value={formData.password} onChange={handleChange} />
+//               </Form.Group>
+//             </Col>
+//             <Col md={6}>
+//               <Form.Group className="mb-3">
+//                 <Form.Label>Confirm Password *</Form.Label>
+//                 <Form.Control name="confirmPassword" type="password" value={formData.confirmPassword} onChange={handleChange} />
+//               </Form.Group>
+//             </Col>
+//           </Row>
+
+//           {error && <Alert variant="danger">{error}</Alert>}
+//           {success && <Alert variant="success">✅ Registration successful! Redirecting...</Alert>}
+//         </Form>
+//       </Modal.Body>
+//       <Modal.Footer>
+//         <Button variant="secondary" onClick={handleClose}>Cancel</Button>
+//         <Button variant="primary" onClick={handleRegister} disabled={nicChecking || !!error}>Register</Button>
+//       </Modal.Footer>
+//     </Modal>
+//   );
+// };
+
+// export default RegisterModal;
+
 import React, { useState } from "react";
-import { Modal, Button, Form, Alert } from "react-bootstrap";
+import { Modal, Button, Form, Alert, Row, Col } from "react-bootstrap";
 import axios from "axios";
+
+// --- SRI LANKA GEOGRAPHIC DATA ---
+const locationData = {
+  "Central": ["Kandy", "Matale", "Nuwara Eliya"],
+  "Eastern": ["Ampara", "Batticaloa", "Trincomalee"],
+  "North Central": ["Anuradhapura", "Polonnaruwa"],
+  "North Western": ["Kurunegala", "Puttalam"],
+  "Northern": ["Jaffna", "Kilinochchi", "Mannar", "Mullaitivu", "Vavuniya"],
+  "Sabaragamuwa": ["Kegalle", "Ratnapura"],
+  "Southern": ["Galle", "Hambantota", "Matara"],
+  "Uva": ["Badulla", "Moneragala"],
+  "Western": ["Colombo", "Gampaha", "Kalutara"]
+};
 
 const RegisterModal = ({ show, handleClose, openLogin }) => {
   const [formData, setFormData] = useState({
@@ -9,7 +238,6 @@ const RegisterModal = ({ show, handleClose, openLogin }) => {
     farmerRegNo: "",
     province: "",
     district: "",
-    email: "",
     mobile: "",
     password: "",
     confirmPassword: "",
@@ -17,123 +245,201 @@ const RegisterModal = ({ show, handleClose, openLogin }) => {
 
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
+  const [nicChecking, setNicChecking] = useState(false);
 
-  // Handle form input changes
+  // --- HANDLE INPUT CHANGES ---
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    
+    // FIX: Clear error as soon as user starts typing to correct a mistake
+    if (error) setError("");
+
+    if (name === "province") {
+      setFormData({ ...formData, province: value, district: "" });
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
   };
 
-  // Handle register button
+  // --- NIC LOGICAL VALIDATION (Sri Lankan Rules) ---
+  const validateNICLogic = (nic) => {
+    const nicRegex = /^([0-9]{9}[vVxX]|[0-9]{12})$/i;
+    if (!nicRegex.test(nic)) return { valid: false, msg: "Invalid NIC format." };
+
+    let dayOfYear;
+    if (nic.length === 10) {
+      dayOfYear = parseInt(nic.substring(2, 5));
+    } else {
+      dayOfYear = parseInt(nic.substring(4, 7));
+    }
+
+    const actualDay = dayOfYear > 500 ? dayOfYear - 500 : dayOfYear;
+    if (actualDay < 1 || actualDay > 366) return { valid: false, msg: "Invalid date encoded in NIC." };
+
+    return { valid: true };
+  };
+
+  // --- BACKEND EXISTENCE CHECK ---
+  const handleNicBlur = async () => {
+    if (!formData.nic) {
+        setError("");
+        return;
+    }
+    
+    // Clear previous error before starting new check
+    setError(""); 
+
+    const logicCheck = validateNICLogic(formData.nic);
+    if (!logicCheck.valid) {
+      setError(`❌ ${logicCheck.msg}`);
+      return;
+    }
+
+    setNicChecking(true);
+    try {
+      const res = await axios.get(`https://ecochain-dashboard-backend.onrender.com/api/auth/check-nic/${formData.nic}`);
+      if (res.data.exists) {
+        setError("❌ This NIC is already registered to another account.");
+      }
+    } catch (err) {
+      console.error("NIC check failed");
+    } finally {
+      setNicChecking(false);
+    }
+  };
+
+  // --- FINAL REGISTRATION ---
   const handleRegister = async () => {
     setError("");
     setSuccess(false);
 
-    // Validation: check all fields
-    for (let key of Object.keys(formData)) {
+    // Required field validation (Email skipped)
+    const mandatory = ["fullName", "nic", "farmerRegNo", "province", "district", "mobile", "password", "confirmPassword"];
+    for (let key of mandatory) {
       if (!formData[key]) {
-        setError(`❌ ${key} is required`);
+        setError("❌ Please fill in all required fields marked with *");
         return;
       }
     }
 
-    // Password match check
     if (formData.password !== formData.confirmPassword) {
       setError("❌ Passwords do not match");
       return;
     }
 
     try {
-      // Prepare payload (remove confirmPassword)
-      const payload = { ...formData };
+      const payload = { 
+        ...formData,
+        email:formData.email.trim() === ""?"" : formData.email
+       };
       delete payload.confirmPassword;
 
-      // ✅ Send POST with JSON header
       const res = await axios.post(
         "https://ecochain-dashboard-backend.onrender.com/api/auth/register",
-        payload,
-        {
-          headers: { "Content-Type": "application/json" },
-        }
+        payload
       );
 
       if (res.data.success) {
         setSuccess(true);
-        setError("");
         setTimeout(() => {
           setSuccess(false);
           handleClose();
-          openLogin(); // open login modal after registration
+          openLogin();
         }, 2000);
-      } else {
-        setError(res.data.message || "❌ Registration failed");
       }
     } catch (err) {
-      console.error("Registration error:", err.response?.data || err.message);
       setError(err.response?.data?.message || "❌ Registration failed");
     }
   };
 
   return (
-    <Modal show={show} onHide={handleClose} centered>
-      <Modal.Header closeButton>
-        <Modal.Title>Register (Farmers Only)</Modal.Title>
-      </Modal.Header>
-
+    <Modal show={show} onHide={handleClose} centered size="lg">
+      <Modal.Header closeButton><Modal.Title className="fw-bold">Farmer Registration</Modal.Title></Modal.Header>
       <Modal.Body>
         <Form>
-          {/* Form Fields */}
-          {[
-            { label: "Full Name", name: "fullName" },
-            { label: "NIC Number", name: "nic" },
-            { label: "Farmer Registration Number", name: "farmerRegNo" },
-            { label: "Province", name: "province" },
-            { label: "District", name: "district" },
-            { label: "Email", name: "email", type: "email" },
-            { label: "Mobile Number", name: "mobile" },
-            { label: "Password", name: "password", type: "password" },
-            { label: "Confirm Password", name: "confirmPassword", type: "password" },
-          ].map((field) => (
-            <Form.Group className="mb-3" key={field.name}>
-              <Form.Label>{field.label} *</Form.Label>
-              <Form.Control
-                type={field.type || "text"}
-                name={field.name}
-                value={formData[field.name]}
-                onChange={handleChange}
-                required
-              />
-            </Form.Group>
-          ))}
+          <Row>
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label>Full Name *</Form.Label>
+                <Form.Control name="fullName" value={formData.fullName} onChange={handleChange} placeholder="Enter full name" />
+              </Form.Group>
+            </Col>
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label>
+                  NIC Number * {nicChecking && <small className="text-primary ms-2">Checking...</small>}
+                </Form.Label>
+                <Form.Control 
+                    name="nic" 
+                    value={formData.nic} 
+                    onChange={handleChange} 
+                    onBlur={handleNicBlur} 
+                    placeholder="e.g. 199212345678" 
+                    className={error && error.includes("NIC") ? "is-invalid" : ""}
+                />
+              </Form.Group>
+            </Col>
+          </Row>
 
-          {/* Alerts */}
-          {error && <Alert variant="danger">{error}</Alert>}
-          {success && (
-            <Alert variant="success">
-              ✅ Registration successful! Redirecting to login...
-            </Alert>
-          )}
+          <Row>
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label>Province *</Form.Label>
+                <Form.Select name="province" value={formData.province} onChange={handleChange}>
+                  <option value="">-- Select Province --</option>
+                  {Object.keys(locationData).map(p => <option key={p} value={p}>{p}</option>)}
+                </Form.Select>
+              </Form.Group>
+            </Col>
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label>District *</Form.Label>
+                <Form.Select name="district" value={formData.district} onChange={handleChange} disabled={!formData.province}>
+                  <option value="">-- Select District --</option>
+                  {formData.province && locationData[formData.province].map(d => <option key={d} value={d}>{d}</option>)}
+                </Form.Select>
+              </Form.Group>
+            </Col>
+          </Row>
+
+          <Row>
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label>Farmer Registration No *</Form.Label>
+                <Form.Control name="farmerRegNo" value={formData.farmerRegNo} onChange={handleChange} placeholder="Reg Number" />
+              </Form.Group>
+            </Col>
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label>Mobile Number *</Form.Label>
+                <Form.Control name="mobile" value={formData.mobile} onChange={handleChange} placeholder="07xxxxxxxx" />
+              </Form.Group>
+            </Col>
+          </Row>
+
+          <Row>
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label>Password *</Form.Label>
+                <Form.Control name="password" type="password" value={formData.password} onChange={handleChange} />
+              </Form.Group>
+            </Col>
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label>Confirm Password *</Form.Label>
+                <Form.Control name="confirmPassword" type="password" value={formData.confirmPassword} onChange={handleChange} />
+              </Form.Group>
+            </Col>
+          </Row>
+
+          {error && <Alert variant="danger" className="py-2">{error}</Alert>}
+          {success && <Alert variant="success" className="py-2">✅ Registration successful! Redirecting to login...</Alert>}
         </Form>
-
-        <p className="mt-3 text-center">
-          Already have an account?{" "}
-          <span
-            style={{ color: "#007bff", cursor: "pointer" }}
-            onClick={() => {
-              handleClose();
-              openLogin();
-            }}
-          >
-            Login
-          </span>
-        </p>
       </Modal.Body>
-
-      <Modal.Footer>
-        <Button variant="secondary" onClick={handleClose}>
-          Cancel
-        </Button>
-        <Button variant="primary" onClick={handleRegister}>
-          Register
+      <Modal.Footer className="border-0">
+        <Button variant="light" onClick={handleClose} className="px-4">Cancel</Button>
+        <Button variant="primary" onClick={handleRegister} disabled={nicChecking || !!error} className="px-5 fw-bold">
+          Register Account
         </Button>
       </Modal.Footer>
     </Modal>
@@ -141,4 +447,3 @@ const RegisterModal = ({ show, handleClose, openLogin }) => {
 };
 
 export default RegisterModal;
-

@@ -1,13 +1,13 @@
 import React from 'react'
 import logo from '../Images/LOGO.png'
-import { Navbar, Nav, Container, NavDropdown, } from 'react-bootstrap'
+import { Navbar, Nav, Container, NavDropdown } from 'react-bootstrap'
 import { Link } from 'react-router-dom'
 
 const HeaderLogged = ({setIsLoggedIn}) => {
   return (
     <Navbar bg="dark" variant="dark" expand="lg" sticky="top">
       <Container fluid>
-        <Navbar.Brand as={Link} to='dashboard' className="ms-3">
+        <Navbar.Brand as={Link} to='/dashboard' className="ms-3">
           <div>
             <img src={logo} alt="ecoChain Logo" width="200" height="50" style={{ objectFit: 'contain' }} />
           </div>
@@ -17,17 +17,21 @@ const HeaderLogged = ({setIsLoggedIn}) => {
             <Nav className="ms-auto align-items-center">
               <div className='d-flex' style={{marginRight:'50px'}}>
                 <Nav.Link as={Link} to='/dashboard' className='px-4'>Dashboard</Nav.Link>
-                <Nav.Link as={Link} to='/about-us' className='px-4'>About Us</Nav.Link>
+                <Nav.Link as={Link} to='/pricing' className='px-4'>Pricing</Nav.Link>
                 <Nav.Link as={Link} to='/calendar-page' className='px-4'>Calendar</Nav.Link>
+                {/* ✅ Added Crop Table link here */}
+                <Nav.Link as={Link} to='/crop-table' className='px-4'>Crop Table</Nav.Link>
                 <Nav.Link as={Link} to='/forecasting' className='px-4'>Forecasting</Nav.Link>
                 <Nav.Link as={Link} to='/product-declaration' className='px-4'>Product Decleration</Nav.Link>
               </div>
 
               <NavDropdown
                 title={
-                    <image
+                    /* ✅ Fixed: Changed <image> to <img> to ensure cross-browser compatibility */
+                    <img
                         src="https://via.placeholder.com/40" 
-                        roundedCircle
+                        alt="Profile"
+                        className="rounded-circle"
                         style={{width: '40px', height: '40px', objectFit: 'cover'}}
                     />
                 }
@@ -46,9 +50,6 @@ const HeaderLogged = ({setIsLoggedIn}) => {
               <NavDropdown.Item href="#settings">⚙️ Settings</NavDropdown.Item>
               <NavDropdown.Item href="#profile">👤 Profile</NavDropdown.Item>
               <NavDropdown.Divider />
-              {/* <NavDropdown.Item href="#logout" className="text-danger">
-                🚪 Logout
-              </NavDropdown.Item> */}
 
               <Nav.Link onClick={() => setIsLoggedIn(false)} className="px-4 text-danger fw-bold">
                 Logout
@@ -63,4 +64,3 @@ const HeaderLogged = ({setIsLoggedIn}) => {
 }
 
 export default HeaderLogged
-

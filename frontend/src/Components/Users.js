@@ -1,25 +1,15 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
+import mongoose from "mongoose";
 
-function Users() {
-  const [users, setUsers] = useState([]);
+const userSchema = new mongoose.Schema({
+  fullName: { type: String, required: true },
+  nic: { type: String, required: true, unique: true },
+  farmerRegNo: { type: String, required: true, unique: true },
+  province: { type: String, required: true },
+  district: { type: String, required: true },
+  mobile: { type: String, required: true },
+  password: { type: String, required: true },
+  role: { type: String, default: "farmer" }
+}, { timestamps: true });
 
-  useEffect(() => {
-    axios.get("http://localhost:5000/api/users")
-      .then(res => setUsers(res.data))
-      .catch(err => console.log(err));
-  }, []);
-
-  return (
-    <div>
-      <h1>Users</h1>
-      <ul>
-        {users.map(u => (
-          <li key={u.id}>{u.name}</li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-export default Users;
+const User = mongoose.model("User", userSchema);
+export default User;

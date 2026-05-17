@@ -1,13 +1,78 @@
-/* ProductDeclaration.css */
-
-h3 {
-  margin-bottom: 10px;
+/* Custom styling for the Product Declaration Page */
+.declaration-wrapper {
+  background-color: #f8fcf8; /* Very soft green/white background */
+  min-height: 100vh;
+  padding-bottom: 3rem;
 }
 
-form .form-label {
+.declaration-card {
+  border-radius: 20px;
+  border: none;
+  box-shadow: 0 10px 30px rgba(27, 94, 32, 0.08); /* Soft green shadow */
+  background-color: #ffffff;
+}
+
+.section-header {
+  color: #1B5E20; /* Deep agricultural green */
+  font-weight: 700;
+  border-bottom: 2px solid #E8F5E9;
+  padding-bottom: 12px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.25rem;
+}
+
+/* Make inputs look modern */
+.custom-input {
+  border-radius: 12px !important;
+  border: 1px solid #ced4da;
+  padding: 12px 15px !important;
+  transition: all 0.3s ease;
+  box-shadow: none !important;
+}
+
+.custom-input:focus {
+  border-color: #4CAF50;
+  box-shadow: 0 0 0 0.25rem rgba(76, 175, 80, 0.15) !important;
+}
+
+/* Beautiful buttons */
+.btn-custom-primary {
+  background: linear-gradient(135deg, #2E7D32 0%, #1B5E20 100%);
+  border: none;
+  border-radius: 30px;
+  padding: 12px 35px;
+  font-weight: 600;
+  color: white;
+  transition: all 0.3s ease;
+}
+
+.btn-custom-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(27, 94, 32, 0.3);
+  color: white;
+}
+
+.btn-custom-secondary {
+  background-color: #f1f3f5;
+  color: #495057;
+  border: none;
+  border-radius: 30px;
+  padding: 12px 35px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-custom-secondary:hover {
+  background-color: #e2e6ea;
+  transform: translateY(-2px);
+}
+
+.read-only-input {
+  background-color: #f8f9fa !important;
+  border-color: #e9ecef !important;
+  color: #6c757d;
   font-weight: 500;
-}
-
-button {
-  min-width: 100px;
 }

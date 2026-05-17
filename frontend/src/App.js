@@ -9,12 +9,13 @@ import Hero from './Components/Hero';
 import Footer from './Components/Footer';
 import HeaderLogged from './Components/HeaderLogged';
 import Dashboard from './Components/Dashboard';
-import ProductDeclaration from './Components/ProductDeclaration'; // new page
+import ProductDeclaration from './Components/ProductDeclaration'; 
 import Forecasting from './Components/Forecasting';
 import PrivateRoute from './Components/PrivateRoute';
-import CultivationMap from './Components/CultivationMap';
+import CultivationMap from './Components/DistrictDataTable';
 import CalendarPage from './Components/CalendarPage';
-import AboutUs from './Components/AboutUs';
+import AmountSummaryTable from './Components/AmountSummaryTable'; // ✅ New Import
+import PriceTrendsChart from './Components/PriceTrendsChart';
 import ScrollToTop from './Components/ScrollToTop';
 import { Navigate } from 'react-router-dom';
 
@@ -24,9 +25,8 @@ function App() {
     });
 
     const [userRole, setUserRole] = useState(() => {
-    return localStorage.getItem("role") || null; // "farmer" or "admin"
+    return localStorage.getItem("role") || null; 
     });
-
 
     useEffect(() => {
       localStorage.setItem("isLoggedIn", isLoggedIn);
@@ -41,11 +41,10 @@ function App() {
       { crop: "Pumpkin", area: "Anuradhapura", position: [8.3114, 80.4037] },
     ];
 
-
   return (
     <Router>
       <ScrollToTop />
-      <div className="App" style={{ backgroundColor: "rgb(216 213 213)", minHeight: "100vh" }}>
+      <div className="App" style={{ backgroundColor: "rgb(227, 222, 233)", minHeight: "100vh" }}>
         {isLoggedIn ? (
           <>
             {userRole === "admin" ? (
@@ -68,9 +67,16 @@ function App() {
                   </PrivateRoute>
                 } />
 
-                <Route path="/about-us" element={
+                {/* ✅ Secure standalone Route configuration for the Crop Table summary log */}
+                <Route path="/crop-table" element={
                   <PrivateRoute isLoggedIn={isLoggedIn && userRole === 'farmer'}>
-                    <AboutUs />
+                    <AmountSummaryTable />
+                  </PrivateRoute>
+                } />
+
+                <Route path="/pricing" element={
+                  <PrivateRoute isLoggedIn={isLoggedIn && userRole === 'farmer'}>
+                    <PriceTrendsChart />
                   </PrivateRoute>
                 } />
 
@@ -128,7 +134,3 @@ function App() {
 }
 
 export default App;
-
-
-
-

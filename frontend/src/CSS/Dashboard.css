@@ -1,47 +1,12 @@
-/* =========================================
-   2. HARVEST TIMELINE ANIMATIONS (7 Blocks)
-   ========================================= */
-
-.timeline-container {
-  margin: 2rem 30px;
-}
-
-.transition-col {
-  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-}
-
-.timeline-card {
-  cursor: pointer;
-  border: none;
-  border-radius: 15px;
-  /* 100% Transparent background */
-  background-color: transparent; 
-  width: 100%; 
-  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-}
-
-/* Side Cards: Keep a subtle shadow even when transparent */
-.timeline-side {
-  transform: scale(0.85);
-  opacity: 0.5;
-  color: #6c757d;
-  background-color: transparent;
-  /* Subtle shadow for depth */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
-}
-
-.timeline-side:hover {
-  transform: scale(0.9);
-  opacity: 0.9;
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-}
-
-/* Center Card: Deep shadow for the "selected" effect */
-.timeline-center {
-  transform: scale(1.1);
-  z-index: 10;
-  border: 2px solid #28a745;
-  background-color: transparent;
-  /* Stronger shadow to make the transparent card "pop" */
-  box-shadow: 0 12px 30px rgba(40, 167, 69, 0.3); 
+.glass-border {
+  /* Make sure background is fully transparent */
+  background: transparent !important; 
+  background-color: transparent !important;
+  
+  /* Apply a clean, semi-transparent border */
+  border: 2px solid rgba(255, 255, 255, 0.4) !important;
+  border-radius: 16px !important;
+  
+  /* Optional: Soft shadow to make the border outline pop gently over the app background */
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02) !important;
 }
