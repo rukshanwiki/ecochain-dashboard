@@ -213,7 +213,6 @@
 // };
 
 // export default RegisterModal;
-
 import React, { useState } from "react";
 import { Modal, Button, Form, Alert, Row, Col } from "react-bootstrap";
 import axios from "axios";
@@ -239,6 +238,7 @@ const RegisterModal = ({ show, handleClose, openLogin }) => {
     province: "",
     district: "",
     mobile: "",
+    email: "", // ✅ ADDED EMAIL TO STATE
     password: "",
     confirmPassword: "",
   });
@@ -251,7 +251,7 @@ const RegisterModal = ({ show, handleClose, openLogin }) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     
-    // FIX: Clear error as soon as user starts typing to correct a mistake
+    // Clear error as soon as user starts typing to correct a mistake
     if (error) setError("");
 
     if (name === "province") {
@@ -313,8 +313,8 @@ const RegisterModal = ({ show, handleClose, openLogin }) => {
     setError("");
     setSuccess(false);
 
-    // Required field validation (Email skipped)
-    const mandatory = ["fullName", "nic", "farmerRegNo", "province", "district", "mobile", "password", "confirmPassword"];
+    // ✅ ADDED EMAIL TO MANDATORY FIELDS
+    const mandatory = ["fullName", "nic", "farmerRegNo", "province", "district", "mobile", "email", "password", "confirmPassword"];
     for (let key of mandatory) {
       if (!formData[key]) {
         setError("❌ Please fill in all required fields marked with *");
@@ -330,7 +330,7 @@ const RegisterModal = ({ show, handleClose, openLogin }) => {
     try {
       const payload = { 
         ...formData,
-        email:formData.email.trim() === ""?"" : formData.email
+        email: formData.email.trim()
        };
       delete payload.confirmPassword;
 
@@ -403,16 +403,23 @@ const RegisterModal = ({ show, handleClose, openLogin }) => {
           </Row>
 
           <Row>
-            <Col md={6}>
+            <Col md={4}>
               <Form.Group className="mb-3">
                 <Form.Label>Farmer Registration No *</Form.Label>
                 <Form.Control name="farmerRegNo" value={formData.farmerRegNo} onChange={handleChange} placeholder="Reg Number" />
               </Form.Group>
             </Col>
-            <Col md={6}>
+            <Col md={4}>
               <Form.Group className="mb-3">
                 <Form.Label>Mobile Number *</Form.Label>
                 <Form.Control name="mobile" value={formData.mobile} onChange={handleChange} placeholder="07xxxxxxxx" />
+              </Form.Group>
+            </Col>
+            {/* ✅ ADDED EMAIL INPUT FIELD HERE */}
+            <Col md={4}>
+              <Form.Group className="mb-3">
+                <Form.Label>Email Address *</Form.Label>
+                <Form.Control name="email" type="email" value={formData.email} onChange={handleChange} placeholder="farmer@example.com" />
               </Form.Group>
             </Col>
           </Row>
