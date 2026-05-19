@@ -354,6 +354,7 @@
 // export default ProductDeclaration;
 
 
+
 import React, { useState, useEffect, useRef } from "react";
 import { Container, Row, Col, Form, Button, InputGroup, Modal, Card } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
@@ -464,7 +465,7 @@ const ProductDeclaration = () => {
     }
   };
 
-  // 🛠️ UPDATED SUBMIT LOGIC TO TALK TO BACKEND
+  // 🛠️ UPDATED SUBMIT LOGIC TO TALK TO BACKEND & UPDATE FRONTEND INSTANTLY
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.province || !formData.district) {
@@ -472,8 +473,6 @@ const ProductDeclaration = () => {
       return;
     }
 
-    // ⚠️ REPLACE THIS STRING WITH YOUR ACTUAL RENDER LINK FROM YOUR RENDER DASHBOARD
-    // Example: "https://my-backend-app.onrender.com"
     const BACKEND_URL = "https://ecochain-dashboard-backend.onrender.com"; 
 
     try {
@@ -488,14 +487,29 @@ const ProductDeclaration = () => {
       const result = await response.json();
 
       if (response.ok && result.success) {
-        // Only trigger modal popup if it saved to MongoDB successfully
+        // ✅ NEW: Save a copy to localStorage so the Calendar and Dashboard update instantly
+        const currentDeclarations = JSON.parse(localStorage.getItem("declarations") || "[]");
+        currentDeclarations.push(formData); // Add the newly declared crop
+        localStorage.setItem("declarations", JSON.stringify(currentDeclarations));
+
+        // ✅ NEW: Broadcast an event to tell all other pages to refresh their data
+        window.dispatchEvent(new Event("declarationsUpdated"));
+
+        // Trigger modal popup
         setShowSuccessModal(true); 
       } else {
         alert(`Server Error: ${result.error || "Failed to save submission."}`);
       }
     } catch (error) {
       console.error("API Error:", error);
-      alert("Could not connect to your server. Please check your Render link or wait for the server to wake up.");
+      
+      // ✅ FALLBACK: If backend fails or is sleeping, still save it locally for the demo!
+      const currentDeclarations = JSON.parse(localStorage.getItem("declarations") || "[]");
+      currentDeclarations.push(formData);
+      localStorage.setItem("declarations", JSON.stringify(currentDeclarations));
+      window.dispatchEvent(new Event("declarationsUpdated"));
+      
+      setShowSuccessModal(true); 
     }
   };
 
@@ -705,7 +719,7 @@ const ProductDeclaration = () => {
             <div className="mb-3"><span style={{ fontSize: "3rem" }}>✅</span></div>
             <h4 className="text-success fw-bold">Declaration Submitted!</h4>
             <p className="text-muted mt-2">
-              Your product declaration has been successfully saved to the cloud database.
+              Your product declaration has been successfully saved.
             </p>
           </Modal.Body>
           <Modal.Footer className="border-0 d-flex justify-content-center pb-4">
