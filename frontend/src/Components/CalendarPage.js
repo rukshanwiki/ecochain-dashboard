@@ -203,7 +203,7 @@ const CalendarPage = ({ selectedVeg, setSelectedVeg, vegetables }) => {
     return `${year}-${month}-${day}`;
   };
 
-  const buildDateMap = (type) => {
+const buildDateMap = (type) => {
     const dateMap = {};
 
     // Filter based on the currently selected dropdown value
@@ -212,20 +212,30 @@ const CalendarPage = ({ selectedVeg, setSelectedVeg, vegetables }) => {
       : declarations.filter(item => item.product?.trim().toLowerCase() === currentVeg.trim().toLowerCase());
 
     filtered.forEach((item) => {
-      const startStr = type === "cultivation" ? item.cultivationStart : (item.harvestingDate || item.harvestingStart);
-      const endStr = type === "cultivation" ? item.cultivationEnd : item.harvestingEnd;
+      // 1. Get Start Date
+      const startStr = type === "cultivation" ? item.cultivationStart : (item.harvestingDate || item.harvestStart);
+      
+      // 2. Get End Date, but FALLBACK to Start Date if it's missing (fixes old broken test data!)
+      let endStr = type === "cultivation" ? item.cultivationEnd : item.harvestingEnd;
+      if (!endStr) {
+        endStr = startStr; 
+      }
+
       const totalUnits = parseFloat(item.units) || 0;
 
-      if (!startStr || !endStr) return;
+      // Skip if there's no valid start date at all
+      if (!startStr) return;
 
-      // Create Date objects (Force local time to avoid shifts)
+      // 3. Create Date objects (Force local time to avoid shifts)
       const startDate = new Date(startStr + "T00:00:00");
       const endDate = new Date(endStr + "T00:00:00");
 
+      // 4. Calculate accurate daily distribution
       const diffTime = Math.abs(endDate - startDate);
       const durationInDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
       const dailyUnits = totalUnits / (durationInDays || 1);
 
+      // 5. Apply the math to the calendar dates
       const current = new Date(startDate);
       while (current <= endDate) {
         const dateKey = getLocalStr(current);
@@ -234,6 +244,7 @@ const CalendarPage = ({ selectedVeg, setSelectedVeg, vegetables }) => {
         current.setDate(current.getDate() + 1);
       }
     });
+    
     return dateMap;
   };
 
