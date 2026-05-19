@@ -501,7 +501,6 @@
 // export default Dashboard;
 
 
-
 import React, { useEffect, useState } from "react";
 import { Container, Row, Col, Button, Card, Spinner, Alert, Form } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
@@ -511,14 +510,13 @@ import "../CSS/Dashboard.css";
 
 const Dashboard = () => {
   const [selectedVeg, setSelectedVeg] = useState("All");
-  const [timeframe, setTimeframe] = useState("month"); // Added missing timeframe state control
+  const [timeframe, setTimeframe] = useState("month"); // ✨ Fixed: Added missing timeframe state
   const [allDeclarations, setAllDeclarations] = useState([]);
   const [userName, setUserName] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  // Your live cloud API production server URL
   const BACKEND_URL = "https://ecochain-dashboard-backend.onrender.com";
 
   useEffect(() => {
@@ -563,7 +561,7 @@ const Dashboard = () => {
   const getSortableKey = (dateStr, tf) => {
     if (!dateStr) return null;
     const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return null; // Date validation safety step
+    if (isNaN(d.getTime())) return null; 
     const year = d.getFullYear();
     const month = String(d.getMonth() + 1).padStart(2, '0');
     if (tf === 'year') return `${year}`;
@@ -591,7 +589,7 @@ const Dashboard = () => {
     data.forEach(item => {
       const key = getSortableKey(item[dateField], tf);
       if (key) {
-        // Pointed aggregations precisely to item.units database key
+        // ✨ Fixed: Explicitly using item.units to match your DB schema
         agg[key] = (agg[key] || 0) + (parseFloat(item.units) || 0);
       }
     });
@@ -604,13 +602,13 @@ const Dashboard = () => {
       }));
   };
 
-  // Restored and connected analytical graph calculations
+  // ✨ Fixed: Un-commented and activated chart generators
   const cultivationChartData = generateChartData(filteredLocations, "cultivationStart", timeframe);
   const harvestChartData = generateChartData(filteredLocations, "harvestingDate", timeframe);
 
   return (
     <Container className="mt-5 mb-1">
-      {/* 1. Greeting Section */}
+      {/* Greeting Section */}
       <Row className="mb-3">
         <Col>
           <h2 className="fw-bold" style={{ color: "#1B5E20" }}>
@@ -619,7 +617,7 @@ const Dashboard = () => {
         </Col>
       </Row>
 
-      {/* 2. Pre-Declaration Workflow Guide Panel */}
+      {/* Pre-Declaration Workflow Guide Panel */}
       <Row className="mb-4">
         <Col>
           <Card className="shadow-sm border-0 p-4 rounded-4 bg-white">
@@ -705,12 +703,12 @@ const Dashboard = () => {
         </Col>
       </Row>
 
-      {/* Global Live Data Filter Panel */}
+      {/* Dynamic Controls Filter Strip */}
       {!loading && !error && (
         <Row className="mb-4 g-3 align-items-center bg-light p-3 rounded-4 shadow-sm mx-0">
           <Col md={6}>
             <Form.Group>
-              <Form.Label className="fw-bold text-dark mb-1">Filter Dashboard by Vegetable</Form.Label>
+              <Form.Label className="fw-bold text-dark mb-1">Filter Dashboard Vegetable</Form.Label>
               <Form.Select value={selectedVeg} onChange={(e) => setSelectedVeg(e.target.value)}>
                 <option value="All">All Declared Vegetables</option>
                 {productsFromData.map(p => (
@@ -721,39 +719,38 @@ const Dashboard = () => {
           </Col>
           <Col md={6}>
             <Form.Group>
-              <Form.Label className="fw-bold text-dark mb-1">Select Chart Interval Timeframe</Form.Label>
+              <Form.Label className="fw-bold text-dark mb-1">Chart Time Frame</Form.Label>
               <Form.Select value={timeframe} onChange={(e) => setTimeframe(e.target.value)}>
-                <option value="week">Weekly Breakdown</option>
-                <option value="month">Monthly Breakdown</option>
-                <option value="year">Annual Breakdown</option>
+                <option value="week">Weekly Distribution</option>
+                <option value="month">Monthly Distribution</option>
+                <option value="year">Annual Distribution</option>
               </Form.Select>
             </Form.Group>
           </Col>
         </Row>
       )}
         
-      {/* Async State Loaders */}
+      {/* Async Load Status Block */}
       {loading && (
         <div className="text-center my-5">
           <Spinner animation="border" variant="success" />
-          <p className="text-muted mt-2">Reading from remote cloud database metrics...</p>
+          <p className="text-muted mt-2">Syncing database metrics components...</p>
         </div>
       )}
 
       {error && (
         <Alert variant="danger" className="my-3">
-          ⚠️ Remote Service Error: {error}. Could not retrieve table parameters.
+          ⚠️ Connection Interrupted: {error}
         </Alert>
       )}
 
-      {/* Visual Analytics & Data Metrics Blocks */}
+      {/* Interactive Graph Components & Tables */}
       {!loading && !error && (
         <>
-          {/* Line Charts Section */}
           <Row className="mb-5 g-4">
             <Col md={6}>
               <Card className="p-3 shadow-sm border-0 rounded-4 h-100">
-                <h5 className="fw-bold mb-3" style={{ color: "#1B5E20" }}>📈 Cultivation Trends (kg)</h5>
+                <h5 className="fw-bold mb-3" style={{ color: "#1B5E20" }}>📈 Cultivation Progression Trends (kg)</h5>
                 <div style={{ width: '100%', height: 250 }}>
                   {cultivationChartData.length > 0 ? (
                     <ResponsiveContainer>
@@ -763,11 +760,11 @@ const Dashboard = () => {
                         <YAxis />
                         <Tooltip />
                         <Legend />
-                        <Line type="monotone" dataKey="Amount" stroke="#2E7D32" strokeWidth={3} activeDot={{ r: 8 }} name="Cultivated" />
+                        <Line type="monotone" dataKey="Amount" stroke="#2E7D32" strokeWidth={3} activeDot={{ r: 8 }} name="Cultivated Vol" />
                       </LineChart>
                     </ResponsiveContainer>
                   ) : (
-                    <div className="text-center text-muted py-5">No logged cultivation metrics for this selection.</div>
+                    <div className="text-center text-muted py-5">No metrics available for this crop framework yet.</div>
                   )}
                 </div>
               </Card>
@@ -775,7 +772,7 @@ const Dashboard = () => {
             
             <Col md={6}>
               <Card className="p-3 shadow-sm border-0 rounded-4 h-100">
-                <h5 className="fw-bold mb-3" style={{ color: "#D84315" }}>📉 Expected Harvest Yields (kg)</h5>
+                <h5 className="fw-bold mb-3" style={{ color: "#D84315" }}>📉 Anticipated Harvest Yields (kg)</h5>
                 <div style={{ width: '100%', height: 250 }}>
                   {harvestChartData.length > 0 ? (
                     <ResponsiveContainer>
@@ -785,40 +782,37 @@ const Dashboard = () => {
                         <YAxis />
                         <Tooltip />
                         <Legend />
-                        <Line type="monotone" dataKey="Amount" stroke="#D84315" strokeWidth={3} name="Harvested" />
+                        <Line type="monotone" dataKey="Amount" stroke="#D84315" strokeWidth={3} name="Expected Harvest" />
                       </LineChart>
                     </ResponsiveContainer>
                   ) : (
-                    <div className="text-center text-muted py-5">No projected yield matrices found for this crop selection.</div>
+                    <div className="text-center text-muted py-5">No projected timeline data records found.</div>
                   )}
                 </div>
               </Card>
             </Col>
           </Row>
 
-          {/* District Output Table */}
+          {/* District Output Metrics */}
           <div className="mt-4 mb-5">
-            <h4 className="fw-bold mb-3" style={{ color: "#1B5E20" }}>📊 Detailed Yield Matrix Log (District-wise)</h4>
+            <h4 className="fw-bold mb-3" style={{ color: "#1B5E20" }}>📊 Detailed Yield Matrix Log</h4>
             <Card className="p-3 shadow-sm border-0 rounded-4">
               {filteredLocations.length > 0 ? (
                 <DistrictDataTable locations={filteredLocations} />
               ) : (
-                <div className="text-center text-muted py-4">
-                  No logged parameters exist for this selected crop frame.
-                </div>
+                <div className="text-center text-muted py-4">No parameters logged for this vegetable frame.</div>
               )}
             </Card>
           </div>
         </>
       )}
 
-      {/* About Us Structural Footer Blocks */}
+      {/* Footer Branding Info */}
       <div>
         <section className="vision-mission-section glass-border mb-4">
           <div className="section-content p-4">
             <h2 style={{ color: "#1B5E20", fontWeight: "bold" }}>Our Vision</h2>
             <p>To enhance Sri Lanka’s agricultural productivity through sustainable practices and modern solutions.</p>
-
             <h2 className="mt-5" style={{ color: "#1B5E20", fontWeight: "bold" }}>Our Mission</h2>
             <p>To support farmers nationwide, provide accurate agricultural information, and promote eco-friendly farming techniques.</p>
           </div>
@@ -844,3 +838,4 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+
