@@ -474,7 +474,7 @@ const ProductDeclaration = () => {
 
     // ⚠️ REPLACE THIS STRING WITH YOUR ACTUAL RENDER LINK FROM YOUR RENDER DASHBOARD
     // Example: "https://my-backend-app.onrender.com"
-    const BACKEND_URL = "hhttps://ecochain-dashboard-backend.onrender.com"; 
+    const BACKEND_URL = "https://ecochain-dashboard-backend.onrender.com"; 
 
     try {
       const response = await fetch(`${BACKEND_URL}/api/declarations`, {
